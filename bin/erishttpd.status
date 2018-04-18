@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "Status of erishttpd server processor..."
+
+echo "---------------------------------------------------------------------------";
+ps -ef | grep erishttpd | grep -v grep | grep -v vi | grep -v erishttpd.status
+echo "---------------------------------------------------------------------------";
+
+echo "Status of erishttpd server processor end."
+
+

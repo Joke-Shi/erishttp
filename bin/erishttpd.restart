@@ -1,0 +1,36 @@
+#!/bin/bash
+
+echo "Stop erishttpd server processor..."
+
+
+rc=`pidof erishttpd`
+
+if [ -n "$rc" ]; then
+	kill -9 $rc
+
+	rc=`rm -rf $ERISHTTP/var/run/erishttp.pid`
+fi
+
+sleep 1
+echo "---------------------------------------------------------------------------";
+ps -ef | grep erishttpd | grep -v grep | grep -v vi | grep -v erishttpd.restart
+echo "---------------------------------------------------------------------------";
+
+echo "Stop erishttpd server processor end."
+
+
+#!/bin/bash
+
+echo "Start erishttpd server processor..."
+
+./erishttpd
+
+sleep 1
+
+echo "---------------------------------------------------------------------------";
+ps -ef | grep erishttpd | grep -v grep | grep -v vi | grep -v erishttpd.restart
+echo "---------------------------------------------------------------------------";
+
+echo "Start erishttpd server processor end."
+
+

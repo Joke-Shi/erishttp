@@ -1,0 +1,12 @@
+module /hello-api/v1/ {
+    name     hello 
+    language c
+    libfile  modules/hello/libhello.so.0.0.1
+}
+
+module /test-api/v1/ {
+    name     test
+    language c++
+    libfile  modules/test/libtest.so.0.0.1
+}
+

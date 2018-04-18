@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Start erishttpd server processor..."
+
+./erishttpd
+
+sleep 2
+
+echo "---------------------------------------------------------------------------";
+ps -ef | grep erishttpd | grep -v grep | grep -v vi | grep -v erishttpd.start
+echo "---------------------------------------------------------------------------";
+
+echo "Start erishttpd server processor end."
+
+
