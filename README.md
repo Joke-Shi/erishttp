@@ -1,6 +1,9 @@
 # Erishttp
 erishttp is a use http protocol lightweight application server framework, and it can manager c/c++ user service.
 
+## Platform
+Support using in `Linux`, `Mac OS` and `FreeBSD`
+
 ## Build
 Build it before, you can install `pcre` developor library and `cmake` version is equal and greater 2.8:
 ```bash
