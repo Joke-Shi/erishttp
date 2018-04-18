@@ -1111,7 +1111,7 @@ static eris_int_t erishttp_attrs_init( eris_none_t)
             if ( EERIS_NOTFOUND == rc) {
                 erishttp_stdout_print( "[NOTICE]: Not found a config option: listen, rc.<%d>\n", rc);
 
-                rc = eris_string_set( &(erishttp_context.attrs.listen), "0.0.0.0:9432");
+                rc = eris_string_set( &(erishttp_context.attrs.listen), "127.0.0.1:9432");
                 if ( 0 != rc) {
                     rc = EERIS_ERROR;
 
@@ -1178,7 +1178,7 @@ static eris_int_t erishttp_attrs_init( eris_none_t)
             if ( EERIS_NOTFOUND == rc) {
                 erishttp_stdout_print( "[NOTICE]: Not found a config option: admin_listen, rc.<%d>\n", rc);
 
-                rc = eris_string_set( &(erishttp_context.attrs.admin_listen), "0.0.0.0:9432");
+                rc = eris_string_set( &(erishttp_context.attrs.admin_listen), "127.0.0.1:9433");
                 if ( 0 != rc) {
                     rc = EERIS_ERROR;
 
