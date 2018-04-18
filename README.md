@@ -134,3 +134,21 @@ libfile
 
 	Specify module library file pathname, you can set it in `modules/$MOD/lib$MOD.so.0.0.1` like this.
 
+## Write Module
+Create module example:
+```bash
+cd erishttp/modules
+./erishttp.create.mod -h
+./erishttp.create.mod -s xxxx -t c
+ls
+cd xxxx
+ls
+make
+```
+
+Write module code, you can read `erishttp/core/eris.http.h` and `erishttp/core/eris.module.h` apis.
+You can get request query string of `GET` method, and get `POST` request body data and so on.
+
+## Thanks!
+hahaha...
+
