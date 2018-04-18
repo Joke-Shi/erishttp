@@ -123,6 +123,7 @@ doc root
 
 ### Module configs
 name
+
 	Module name string.
 
 language
