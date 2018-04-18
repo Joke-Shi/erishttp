@@ -18,12 +18,15 @@ cd bin
 
 ## Configs
 pidfile
-    Save erishttp.pid path file. default: var/run/erishttp.pid
+
+	Save erishttp.pid path file. default: var/run/erishttp.pid
 
 daemon 
-    value is (on | off). default: on
+
+	value is (on | off). default: on
 
 cpuset 
-    Processor index +1 map cpu index. eg: 1:0 2:1
+
+	Processor index +1 map cpu index. eg: 1:0 2:1
 
 
