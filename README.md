@@ -120,7 +120,7 @@ log_path
 
 	Dump log message file path. default: var/log
 
-doc root
+doc_root
 
 	Static file document root path. default: var/www/htdoc
 
