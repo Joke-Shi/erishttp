@@ -525,6 +525,10 @@ eris_slave_request_incb( eris_buffer_t *__out_buf, eris_size_t __max_size, eris_
             } else {
                 if ( EINTR == errno) { 
                     continue;
+
+                } else if ( (EAGAIN == errno) || (EWOULDBLOCK == errno)) {
+
+                    continue;
                 } else { rc = -1; break; }
             }
         } while ( 0);
@@ -574,6 +578,10 @@ eris_slave_response_outcb( eris_buffer_t *__in_buf, eris_size_t __in_size, eris_
                 
                 if ( 0 > send_n ){
                     if ( EINTR == errno) {
+                        continue;
+
+                    } else if ( (EAGAIN == errno) || (EWOULDBLOCK == errno)) {
+
                         continue;
                     } else { rc = -1; break; }
                 }
