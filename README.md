@@ -17,6 +17,9 @@ make
 cd bin
 ./erishttpd -h
 ./erishttpd -p ../
+curl -i http://127.0.0.1:9432/
+curl -i http://127.0.0.1:9432/hello-api/v1/hello_service
+curl -i http://127.0.0.1:9432/test-api/v1/test_service
 ```
 
 ## Configs
