@@ -215,7 +215,12 @@ eris_int_t eris_select_dispatch( eris_event_t *__event, eris_event_cb_t __event_
                         }
 
                         if ( ERIS_EVENT_NONE != cur_elem.events) {
-                            //eris_event_delete( __event, &cur_elem);
+                            eris_event_elem_t del_elem; {
+                                del_elem.sock   = cur_elem.sock;
+                                del_elem.events = ERIS_EVENT_READ | ERIS_EVENT_WRITE;
+                            }
+
+                            eris_event_delete( __event, &del_elem);
 
                             do_count++;
 
@@ -370,33 +375,38 @@ static eris_none_t eris_select_regfds( eris_event_t *__event)
                      (ERIS_EVENT_READ  & cur_node->elem.events) ||
                      (ERIS_EVENT_WRITE & cur_node->elem.events) ) {
 
-                    eris_event_node_t *ev_new_elem = (eris_event_node_t *)eris_memory_alloc( sizeof( eris_event_node_t));
-                    if ( ev_new_elem) {
-                        ev_new_elem->elem.sock   = cur_node->elem.sock;
-                        ev_new_elem->elem.events = cur_node->elem.events;
-                        ev_new_elem->start       = now_time;
+                    /** Is alive??? */
+                    if ( 1 == eris_socket_ready_w( cur_node->elem.sock, 0)) {
+                        eris_event_node_t *ev_new_elem = (eris_event_node_t *)eris_memory_alloc( sizeof( eris_event_node_t));
+                        if ( ev_new_elem) {
+                            ev_new_elem->elem.sock   = cur_node->elem.sock;
+                            ev_new_elem->elem.events = cur_node->elem.events;
+                            ev_new_elem->start       = now_time;
 
-                        ev_new_elem->next = __event->context.select.event_nodes;
-                        if ( __event->context.select.event_nodes) {
-                            __event->context.select.event_nodes->prev = ev_new_elem;
+                            ev_new_elem->next = __event->context.select.event_nodes;
+                            if ( __event->context.select.event_nodes) {
+                                __event->context.select.event_nodes->prev = ev_new_elem;
+                            }
+
+                            __event->context.select.event_nodes = ev_new_elem;
+
+                            /** Register client socket objects */
+                            if ( __event->context.select.max_sock < cur_node->elem.sock) {
+                                __event->context.select.max_sock = cur_node->elem.sock;
+                            }
+
+                            if (ERIS_EVENT_READ & cur_node->elem.events ) {
+                                FD_SET( cur_node->elem.sock, &(__event->context.select.readable));
+                            }
+
+                            if ( ERIS_EVENT_WRITE & cur_node->elem.events) {
+                                FD_SET( cur_node->elem.sock, &(__event->context.select.writeable));
+                            }
+
+                            count++;
                         }
-
-                        __event->context.select.event_nodes = ev_new_elem;
-
-                        /** Register client socket objects */
-                        if ( __event->context.select.max_sock < cur_node->elem.sock) {
-                            __event->context.select.max_sock = cur_node->elem.sock;
-                        }
-
-                        if (ERIS_EVENT_READ & cur_node->elem.events ) {
-                            FD_SET( cur_node->elem.sock, &(__event->context.select.readable));
-                        }
-
-                        if ( ERIS_EVENT_WRITE & cur_node->elem.events) {
-                            FD_SET( cur_node->elem.sock, &(__event->context.select.writeable));
-                        }
-
-                        count++;
+                    } else {
+                        cur_node->start = 0;
                     }
                 }
 

@@ -2195,34 +2195,40 @@ static eris_none_t erishttp_slave_event_exec( eris_event_elem_t *__elem, eris_ar
             ev_elem.events = 0;
         }
 
-        if ( ERIS_EVENT_OOB & __elem->events) {
-            ev_elem.events = ERIS_EVENT_OOB;
+        if (( ERIS_EVENT_OOB   & __elem->events) ||
+            ( ERIS_EVENT_READ  & __elem->events) ||
+            ( ERIS_EVENT_WRITE & __elem->events) ) {
+            if ( ERIS_EVENT_OOB & __elem->events) {
+                ev_elem.events = ERIS_EVENT_OOB;
 
-            /** Put oob event */
-            eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
-        }
+                /** Put oob event */
+                eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
+            }
 
-        if ( ERIS_EVENT_READ & __elem->events) {
-            ev_elem.events = ERIS_EVENT_READ;
+            if ( ERIS_EVENT_READ & __elem->events) {
+                ev_elem.events = ERIS_EVENT_READ;
 
-            /** Put read event */
-            eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
-        }
+                /** Put read event */
+                eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
+            }
 
-        if ( ERIS_EVENT_WRITE & __elem->events) {
-            ev_elem.events = ERIS_EVENT_WRITE;
+            if ( ERIS_EVENT_WRITE & __elem->events) {
+                ev_elem.events = ERIS_EVENT_WRITE;
 
-            /** Put write event */
-            eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
-        }
+                /** Put write event */
+                eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
+            }
+#if 0
+            if ( ERIS_EVENT_BUSY & __elem->events) {
+                ev_elem.events = ERIS_EVENT_BUSY;
 
-        if ( ERIS_EVENT_BUSY & __elem->events) {
-            ev_elem.events = ERIS_EVENT_BUSY;
+                /** Put write event */
+                eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
+            }
+#endif
+        } else { eris_socket_close( ev_elem.sock); }
 
-            /** Put write event */
-            eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
-        }
-
+#if 0
         if (( ERIS_EVENT_ERROR   & __elem->events) ||
             ( ERIS_EVENT_CLOSE   & __elem->events) ||
             ( ERIS_EVENT_TIMEOUT & __elem->events) ) {
@@ -2231,6 +2237,7 @@ static eris_none_t erishttp_slave_event_exec( eris_event_elem_t *__elem, eris_ar
             /** Put write event */
             eris_event_queue_put( &(erishttp_context.svc_event_queue), &ev_elem, true);
         }
+#endif
 
     } else { 
         erishttp_errors_log_dump( ERIS_LOG_DEBUG, "erishttp event health timer."); 

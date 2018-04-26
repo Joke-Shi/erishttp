@@ -2554,17 +2554,23 @@ eris_int_t eris_http_response_pack( eris_http_t *__http, eris_http_cb_t __outcb,
             /** Call back output request content package */
             if ( 0 == rc) {
                 rc = __outcb( &(__http->hbuffer), __http->hbuffer.size, __arg, __http->log);
-                if ( (0 == rc) && (ERIS_HTTP_HEAD != __http->request.command) ) {
-                    rc = __outcb( &(__http->response.body), __http->response.body.size, __arg, __http->log);
-                    if ( 0 != rc) {
+                if ( 0 == rc) {
+                   if (ERIS_HTTP_HEAD != __http->request.command ) {
+                       if ( 0 < __http->response.body.size) {
+                            rc = __outcb( &(__http->response.body), __http->response.body.size, __arg, __http->log);
+                            if ( 0 != rc) {
+                                rc = EERIS_ERROR;
 
-                        eris_log_dump( __http->log, ERIS_LOG_CORE, "Do output body failed, errno.<%d>", errno);
-                    }
+                                eris_log_dump( __http->log, ERIS_LOG_CORE, "Do output body failed, errno.<%d>", errno);
+                            }
+                       }
+                   }
                 } else {
+                    rc = EERIS_ERROR;
+
                     eris_log_dump( __http->log, ERIS_LOG_CORE, "Do output header failed, errno.<%d>", errno);
                 }
-            }
-
+            } else { rc = EERIS_ERROR; }
         } else {
             rc = EERIS_ERROR;
 

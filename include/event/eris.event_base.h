@@ -211,7 +211,7 @@ struct eris_event_s {
 
     /** Element table */
     eris_int_t            nodes_size;     /** Table size   */
-    eris_atomic_t         nodes_count;      /** Currents     */
+    eris_atomic_t         nodes_count;    /** Currents     */
     eris_event_node_t   **nodes;          /** Nodes table  */
 
     eris_log_t *log;                /** Dump log context   */
@@ -221,9 +221,8 @@ struct eris_event_s {
 /** Event element queue */
 typedef struct eris_event_queue_s eris_event_queue_t;
 struct eris_event_queue_s {
-    eris_mutex_t       mutex;              /** Get   mutex */
-    eris_cond_t        cond_put;           /** Cond  put   */
-    eris_cond_t        cond_get;           /** Cond  get   */
+    eris_mutex_t       mutex;              /** Get mutex   */
+    eris_cond_t        cond;               /** Cond put/get*/
     eris_int_t         max;                /** Queue max   */
     eris_int_t         count;              /** Queue count */
     eris_int_t         front;              /** Front pos   */

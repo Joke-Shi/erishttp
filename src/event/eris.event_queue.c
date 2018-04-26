@@ -40,31 +40,22 @@ eris_int_t eris_event_queue_init( eris_event_queue_t *__event_queue, eris_int_t 
 
         rc = pthread_mutex_init( &(__event_queue->mutex), NULL);
         if ( 0 == rc) {
-            rc = pthread_cond_init( &(__event_queue->cond_put), NULL);
+            rc = pthread_cond_init( &(__event_queue->cond), NULL);
             if ( 0 == rc) {
-                rc = pthread_cond_init( &(__event_queue->cond_get), NULL);
-                if ( 0 == rc) {
-                    /** Create event queue pool */
-                    __event_queue->events = (eris_event_elem_t *)eris_memory_alloc( sizeof( eris_event_elem_t) * __event_queue->max);
-                    if ( __event_queue->events) {
-                        eris_int_t i = 0;
+                /** Create event queue pool */
+                __event_queue->events = (eris_event_elem_t *)eris_memory_alloc( sizeof( eris_event_elem_t) * __event_queue->max);
+                if ( __event_queue->events) {
+                    eris_int_t i = 0;
 
-                        for ( i = 0; i < __event_queue->max; i++) {
-                            __event_queue->events[ i].sock   = -1;
-                            __event_queue->events[ i].events = ERIS_EVENT_NONE;
+                    for ( i = 0; i < __event_queue->max; i++) {
+                        __event_queue->events[ i].sock   = -1;
+                        __event_queue->events[ i].events = ERIS_EVENT_NONE;
 
-                        }
-                    } else {
-                        rc = EERIS_ERROR;
-
-                        pthread_cond_destroy( &(__event_queue->cond_get));
-                        pthread_cond_destroy( &(__event_queue->cond_put));
-                        pthread_mutex_destroy(&(__event_queue->mutex));
                     }
-                } else { 
-                    rc = EERIS_ERROR; 
+                } else {
+                    rc = EERIS_ERROR;
 
-                    pthread_cond_destroy( &(__event_queue->cond_put));
+                    pthread_cond_destroy( &(__event_queue->cond));
                     pthread_mutex_destroy(&(__event_queue->mutex));
                 }
             } else { 
@@ -229,10 +220,10 @@ eris_int_t eris_event_queue_put( eris_event_queue_t *__event_queue, const eris_e
             /** Safe-thread lock */
             rc = pthread_mutex_lock( &(__event_queue->mutex));
             if ( 0 == rc) {
-                while ( __event_queue->max <= __event_queue->count) {
+                while ( __event_queue->max <= (__event_queue->count + 1)) {
                     if ( __wait) {
                         /** Wait, and continue */
-                        pthread_cond_wait( &(__event_queue->cond_put), &(__event_queue->mutex));
+                        pthread_cond_wait( &(__event_queue->cond), &(__event_queue->mutex));
 
                     } else {
                         /** No wait */
@@ -254,8 +245,7 @@ eris_int_t eris_event_queue_put( eris_event_queue_t *__event_queue, const eris_e
                 /** Notify other monitor condition object */
                 {
                     pthread_mutex_unlock( &(__event_queue->mutex));
-                    pthread_cond_signal( &(__event_queue->cond_put));
-                    pthread_cond_signal( &(__event_queue->cond_get));
+                    pthread_cond_broadcast( &(__event_queue->cond));
                 }
             } else { rc = EERIS_ERROR; }
 
@@ -292,7 +282,7 @@ eris_int_t eris_event_queue_get( eris_event_queue_t *__event_queue, eris_event_e
                 while ( 0 == __event_queue->count) {
                     if ( __wait) {
                         /** Wait, and continue */
-                        pthread_cond_wait( &(__event_queue->cond_get), &(__event_queue->mutex));
+                        pthread_cond_wait( &(__event_queue->cond), &(__event_queue->mutex));
 
                     } else {
                         /** No wait */
@@ -314,8 +304,7 @@ eris_int_t eris_event_queue_get( eris_event_queue_t *__event_queue, eris_event_e
                 /** Notify other monitor condition object */
                 {
                     pthread_mutex_unlock( &(__event_queue->mutex));
-                    pthread_cond_signal( &(__event_queue->cond_put));
-                    pthread_cond_signal( &(__event_queue->cond_get));
+                    pthread_cond_broadcast( &(__event_queue->cond));
                 }
             } else { rc = EERIS_ERROR; }
 
@@ -364,8 +353,7 @@ eris_none_t eris_event_queue_destroy( eris_event_queue_t *__event_queue)
             {
                 eris_memory_free( __event_queue->events);
 
-                pthread_cond_destroy( &(__event_queue->cond_put));
-                pthread_cond_destroy( &(__event_queue->cond_get));
+                pthread_cond_destroy( &(__event_queue->cond));
             }
         }
 

@@ -245,6 +245,13 @@ eris_int_t eris_poll_dispatch( eris_event_t *__event, eris_event_cb_t __event_cb
                         }
 
                         if ( ERIS_EVENT_NONE != cur_elem.events) {
+                            eris_event_elem_t del_elem; {
+                                del_elem.sock   = cur_elem.sock;
+                                del_elem.events = ERIS_EVENT_READ | ERIS_EVENT_WRITE;
+                            }
+
+                            eris_event_delete( __event, &del_elem);
+
                             doing_count++;
 
                             /** Doing callback */
@@ -375,24 +382,29 @@ static eris_none_t eris_poll_regfds( eris_event_t *__event)
 
             /** valid socket fd context */
             if ( 0 < cur_node->elem.sock) {
-                __event->context.poll.fds[ reg_count].fd = cur_node->elem.sock;
-                __event->context.poll.fds[ reg_count].events  = 0;
-                __event->context.poll.fds[ reg_count].revents = 0;
+                /** Is alive??? */
+                if ( 1 == eris_socket_ready_w( cur_node->elem.sock, 0)) {
+                    __event->context.poll.fds[ reg_count].fd = cur_node->elem.sock;
+                    __event->context.poll.fds[ reg_count].events  = 0;
+                    __event->context.poll.fds[ reg_count].revents = 0;
 
-                /** Register read event */
-                if ( (ERIS_EVENT_READ  & cur_node->elem.events) ||
-                     (ERIS_EVENT_WRITE & cur_node->elem.events) ) {
+                    /** Register read event */
+                    if ( (ERIS_EVENT_READ  & cur_node->elem.events) ||
+                         (ERIS_EVENT_WRITE & cur_node->elem.events) ) {
 
-                    if ( ERIS_EVENT_READ & cur_node->elem.events) {
-                        __event->context.poll.fds[ reg_count].events |= (POLLIN | POLLRDNORM);
+                        if ( ERIS_EVENT_READ & cur_node->elem.events) {
+                            __event->context.poll.fds[ reg_count].events |= (POLLIN | POLLRDNORM);
+                        }
+
+                        /** Register write event */
+                        if ( ERIS_EVENT_WRITE & cur_node->elem.events) {
+                            __event->context.poll.fds[ reg_count].events |= (POLLOUT | POLLRDNORM);
+                        }
+
+                        reg_count++;
                     }
-
-                    /** Register write event */
-                    if ( ERIS_EVENT_WRITE & cur_node->elem.events) {
-                        __event->context.poll.fds[ reg_count].events |= (POLLOUT | POLLRDNORM);
-                    }
-
-                    reg_count++;
+                }else {
+                    cur_node->start = 0;
                 }
             }
 

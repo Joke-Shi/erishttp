@@ -339,8 +339,6 @@ eris_int_t eris_kqueue_dispatch( eris_event_t *__event, eris_event_cb_t __event_
                                 }
                             }
                         } else {
-                            //eris_event_delete( __event, &ev_elem);
-
                             if ( EV_ERROR & ev_flags ) {
                                 ev_elem.events = ERIS_EVENT_ERROR;
 
@@ -355,6 +353,13 @@ eris_int_t eris_kqueue_dispatch( eris_event_t *__event, eris_event_cb_t __event_
                             }
 
                             if ( ERIS_EVENT_NONE != ev_elem.events) {
+                                eris_event_elem_t del_elem; {
+                                    del_elem.sock   = ev_elem.sock;
+                                    del_elem.events = ERIS_EVENT_READ | ERIS_EVENT_WRITE;
+                                }
+
+                                eris_event_delete( __event, &del_elem);
+
                                 /** Do event callback output */
                                 if ( __event_cb) { __event_cb( &ev_elem, __arg); }
                             }

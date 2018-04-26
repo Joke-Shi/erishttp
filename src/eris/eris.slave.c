@@ -33,7 +33,7 @@ static eris_int_t eris_slave_set_response_headers( eris_http_t *__http_context, 
 static eris_int_t eris_slave_get_file( eris_http_t *__http);
 
 /** Dump log of http request state. */
-static eris_none_t eris_slave_log_dump( eris_sock_t __sock, const eris_http_t *__http, const eris_char_t *__tail);
+static eris_none_t eris_slave_log_dump( eris_sock_t __sock,  const eris_socket_host_t *__client, const eris_http_t *__http, const eris_char_t *__tail);
 
 
 
@@ -73,6 +73,7 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
 
     eris_bool_t is_keepalive     = false;
     eris_size_t content_length_v = 0;
+    eris_socket_host_t client_host;
 
     do {
         switch ( eris_slave_state_v) {
@@ -90,13 +91,17 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
 
                     /** Get event element */
                     rc = eris_event_queue_get( &(p_erishttp_context->svc_event_queue), &ev_elt, true);
-                    if ( 0 == rc) {
-                        if ( 0 < ev_elt.sock ) {
-                            if ( ERIS_EVENT_READ & ev_elt.events) {
-                                eris_slave_state_v = ERIS_SLAVE_HTTP_PARSE;
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - get wait sock.<%d>", eris_get_pid(), ev_elt.sock);
 
-                            } else if ( ERIS_EVENT_OOB & ev_elt.events) {
+                    if ( 0 == rc) {
+                        if ( 0 <= ev_elt.sock ) {
+                            eris_socket_host( ev_elt.sock, &client_host);
+
+                            if ( ERIS_EVENT_OOB & ev_elt.events) {
                                 eris_slave_state_v = ERIS_SLAVE_IS_OOB;
+
+                            } else if ( ERIS_EVENT_READ & ev_elt.events) {
+                                eris_slave_state_v = ERIS_SLAVE_HTTP_PARSE;
 
                             } else { eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; }
                         }
@@ -104,6 +109,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 } break;
             case ERIS_SLAVE_IS_OOB :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - is oob sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     /** Receive a char data */
                     eris_uchar_t c     = 0;
                     eris_int_t   times = 0;
@@ -127,6 +134,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 } break;
             case ERIS_SLAVE_HTTP_PARSE :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - http parse sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     /** Get data and parse */
                     rc = eris_http_request_parse( http_context, eris_slave_request_incb, &ev_elt);
                     if ( 0 == rc) {
@@ -143,9 +152,9 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                                     eris_slave_state_v = ERIS_SLAVE_HTTP_SHAKE;
 
                                 } else { 
-                                    eris_http_response_set_status( http_context, ERIS_HTTP_400);
-
                                     eris_slave_state_v = ERIS_SLAVE_HTTP_4XX; 
+
+                                    eris_http_response_set_status( http_context, ERIS_HTTP_400);
                                 }
                             } else { eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; }
                         } else { eris_slave_state_v = ERIS_SLAVE_EXEC_SERVICE; }
@@ -158,6 +167,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 } break;
             case ERIS_SLAVE_HTTP_SHAKE :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - http shake sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     /** response shake */
                     eris_http_response_pack( http_context, eris_slave_response_outcb, &ev_elt);
                     eris_http_response_set_status( http_context, ERIS_HTTP_000);
@@ -187,12 +198,15 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                             } else {
                                 /** error */
                                 if ( -1 == recv_n) {
-                                    eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE;
+                                    if ( EAGAIN == errno) {
+                                        /** Pass */
+                                    } else {
+                                        eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE;
 
-                                    break;
+                                        break;
+                                    }
                                 }
                             }
-
                         } else if (0 == rc) {
                             try_times++;
 
@@ -211,6 +225,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 } break;
             case ERIS_SLAVE_EXEC_SERVICE :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - exec service sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     eris_http_response_set_status( http_context, ERIS_HTTP_200);
 
                     if ( (ERIS_HTTP_GET    == http_context->request.command) ||
@@ -291,6 +307,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
             case ERIS_SLAVE_HTTP_GET :
             case ERIS_SLAVE_HTTP_HEAD:
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - GET/HEAD sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     /** Get file */
                     rc = eris_slave_get_file( http_context);
                     if ( 0 == rc) {
@@ -318,6 +336,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 } break;
             case ERIS_SLAVE_HTTP_2XX :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - 2xx sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     eris_slave_state_v = ERIS_SLAVE_HTTP_PACK;
 
                     eris_http_response_set_version( http_context, eris_http_request_get_version( http_context));
@@ -345,6 +365,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 } break;
             case ERIS_SLAVE_HTTP_3XX :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - 3xx sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     eris_slave_state_v = ERIS_SLAVE_HTTP_PACK;
 
                     eris_http_response_set_version( http_context, eris_http_request_get_version( http_context));
@@ -373,6 +395,8 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
             case ERIS_SLAVE_HTTP_4XX :
             case ERIS_SLAVE_HTTP_5XX :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - 4xx/5xx sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     rc = 0;
 
                     eris_slave_state_v = ERIS_SLAVE_HTTP_PACK;
@@ -435,17 +459,35 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 } break;
             case ERIS_SLAVE_HTTP_PACK :
                 {
-                    /** output response to client */
-                    rc = eris_http_response_pack( http_context, eris_slave_response_outcb, &ev_elt);
-                    if ( 0 == rc) {
-                        if ( is_keepalive) {
-                            eris_slave_state_v = ERIS_SLAVE_CONN_KEEPALIVE;
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - http pack sock.<%d>", eris_get_pid(), ev_elt.sock);
 
-                        } else { eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; }
-                    } else { eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; }
+                    if ( 1 == eris_socket_ready_w( ev_elt.sock, 1)) {
+                        /** output response to client */
+                        rc = eris_http_response_pack( http_context, eris_slave_response_outcb, &ev_elt);
+                        if ( 0 == rc) {
+                            eris_slave_log_dump( ev_elt.sock, &client_host, http_context, "ok");
+
+                            if ( is_keepalive) {
+                                eris_slave_state_v = ERIS_SLAVE_CONN_KEEPALIVE;
+
+                            } else { eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; }
+                        } else { 
+                            eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; 
+
+                            eris_slave_log_dump( ev_elt.sock, &client_host, http_context, "failed");
+                        }
+                    } else { 
+                        eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; 
+
+                          eris_slave_log_dump( ev_elt.sock, &client_host, http_context, "failed");
+                    }
+
+                    eris_memory_cleanup( &client_host, sizeof( eris_socket_host_t));
                 } break;
             case ERIS_SLAVE_CONN_KEEPALIVE :
                 {
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - keepalive sock.<%d>", eris_get_pid(), ev_elt.sock);
+
                     /** Resave into event context monitor */
                     ev_elt.events = ERIS_EVENT_READ;
 
@@ -453,26 +495,16 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                     if ( 0 == rc) {
                         eris_slave_state_v = ERIS_SLAVE_GET_WAIT;
 
-                        eris_slave_log_dump( ev_elt.sock, http_context, "ok");
                     } else { 
                         eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; 
-
-                        eris_slave_log_dump( ev_elt.sock, http_context, "failed");
                     }
                 } break;
             case ERIS_SLAVE_CONN_CLOSE :
                 {
-                    {
-                        eris_event_elem_t del_ev_elt; {
-                            del_ev_elt.sock   = ev_elt.sock;
-                            del_ev_elt.events = ev_elt.events;
-                        }
-                        eris_event_delete( &(p_erishttp_context->svc_event), &del_ev_elt);
-                    }
+                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - close sock.<%d>", eris_get_pid(), ev_elt.sock);
+                    eris_slave_state_v = ERIS_SLAVE_GET_WAIT;
 
                     eris_socket_close( ev_elt.sock);
-
-                    eris_slave_state_v = ERIS_SLAVE_GET_WAIT;
                 } break;
             default : break;
         }/// switch ( eris_slave_state_v)
@@ -507,10 +539,12 @@ eris_slave_request_incb( eris_buffer_t *__out_buf, eris_size_t __max_size, eris_
     rc = eris_socket_ready_r( p_ev_elt->sock, p_erishttp_context->attrs.timeout);
     if ( 1 == rc) {
         rc = 0;
+    
         do {
             eris_uchar_t recv_buffer[4096] = {0};
 
             eris_ssize_t recv_n = recv( p_ev_elt->sock, recv_buffer, sizeof( recv_buffer), 0);
+            //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - sock.<%d> - receive\n%s", eris_get_pid(), p_ev_elt->sock, recv_buffer);
             if ( 0 < recv_n) {
                 /** Save data */
                 rc = eris_buffer_append( __out_buf, recv_buffer, recv_n, __log);
@@ -565,8 +599,10 @@ eris_slave_response_outcb( eris_buffer_t *__in_buf, eris_size_t __in_size, eris_
             rc = 0;
 
             eris_size_t send_count = 0;
-            do {
-                eris_ssize_t send_n = send( p_ev_elt->sock, __in_buf->data + send_count, __in_size - send_count, 0);
+
+            //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - Send sock.<%d>", eris_get_pid(), p_ev_elt->sock);
+            while ( send_count < __in_size) {
+                eris_ssize_t send_n = send( p_ev_elt->sock, __in_buf->data + send_count, __in_size - send_count, MSG_DONTWAIT);
                 if ( 0 < send_n) {
                     send_count += send_n;
 
@@ -585,7 +621,8 @@ eris_slave_response_outcb( eris_buffer_t *__in_buf, eris_size_t __in_size, eris_
                         continue;
                     } else { rc = -1; break; }
                 }
-            } while ( send_count < __in_size);
+            }
+            //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - Send over sock.<%d>", eris_get_pid(), p_ev_elt->sock);
         } else { rc = -1; /** Timeout is bad request */}
     }
 
@@ -783,13 +820,20 @@ static eris_int_t eris_slave_get_file( eris_http_t *__http)
 /**
  * @Brief: Dump log of http request state.
  *
- * @Param: __sock, Client socket object.
- * @Param: __http, Http context handler.
- * @Param: __tail, "ok" or "failed" send data to client.
+ * @Param: __sock,  Client socket object.
+ * @Param: __client,Client ip:port.
+ * @Param: __http,  Http context handler.
+ * @Param: __tail,  "ok" or "failed" send data to client.
  *
  * @Return: Nothing.
  **/
-static eris_none_t eris_slave_log_dump( eris_sock_t __sock, const eris_http_t *__http, const eris_char_t *__tail)
+static eris_none_t eris_slave_log_dump
+( 
+    eris_sock_t               __sock, 
+    const eris_socket_host_t *__client,
+    const eris_http_t        *__http, 
+    const eris_char_t        *__tail
+)
 {
     const eris_char_t   *p_req_command  = NULL;
     const eris_char_t   *p_resp_version = NULL;
@@ -829,13 +873,12 @@ static eris_none_t eris_slave_log_dump( eris_sock_t __sock, const eris_http_t *_
             } break;
     }
 
-    eris_socket_host_t client_host;
-
-    if ( 0 == eris_socket_host( __sock, &client_host)) {
+    /** Dump access log */
+    {
         eris_log_dump( &(p_erishttp_context->access_log), ERIS_LOG_NOTICE, 
                        "(%s:%d-%d) - \"%s %s %s\" - \"%d %lu\" \"%s\" - %s", 
-                       client_host.ipv4, 
-                       client_host.port,
+                       __client->ipv4, 
+                       __client->port,
                        __sock,
                        p_req_command,
                        req_url_es,

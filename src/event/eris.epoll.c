@@ -103,12 +103,14 @@ eris_int_t eris_epoll_add( eris_event_t *__event, eris_event_elem_t *__elem)
                 if ( (ERIS_EVENT_ACCEPT & __elem->events) ||
                      (ERIS_EVENT_READ   & __elem->events)) {
                     /** Set readable */
-                    tmp_ev.events |= EPOLLIN | EPOLLET;
+                    //tmp_ev.events |= EPOLLIN | EPOLLET;
+                    tmp_ev.events |= EPOLLIN ;
                 }
 
                 if ( ERIS_EVENT_WRITE & __elem->events) {
                     /** Set write */
-                    tmp_ev.events |= EPOLLOUT | EPOLLET;
+                    //tmp_ev.events |= EPOLLOUT | EPOLLET;
+                    tmp_ev.events |= EPOLLOUT ;
                 }
 
                 rc = epoll_ctl( __event->context.epoll.fd, EPOLL_CTL_ADD, __elem->sock, &tmp_ev);
@@ -169,12 +171,14 @@ eris_int_t eris_epoll_modify( eris_event_t *__event, eris_event_elem_t *__elem)
                 if ( (ERIS_EVENT_ACCEPT & __elem->events) ||
                      (ERIS_EVENT_READ   & __elem->events)) {
                     /** Set readable */
-                    tmp_ev.events |= EPOLLIN | EPOLLET;
+                    //tmp_ev.events |= EPOLLIN | EPOLLET;
+                    tmp_ev.events |= EPOLLIN;
                 }
 
                 if ( ERIS_EVENT_WRITE & __elem->events) {
                     /** Set write */
-                    tmp_ev.events |= EPOLLOUT | EPOLLET;
+                    //tmp_ev.events |= EPOLLOUT | EPOLLET;
+                    tmp_ev.events |= EPOLLOUT ;
                 }
 
                 rc = epoll_ctl( __event->context.epoll.fd, EPOLL_CTL_MOD, __elem->sock, &tmp_ev);
@@ -362,8 +366,6 @@ eris_int_t eris_epoll_dispatch( eris_event_t *__event, eris_event_cb_t __event_c
                                 }
                             }
                         } else {
-                            //eris_epoll_delete( __event, &cur_elem);
-
                             /** Has readable */
                             if ( EPOLLIN & __event->context.epoll.fds[ i].events) {
                                 cur_elem.events |= ERIS_EVENT_READ;
@@ -391,6 +393,13 @@ eris_int_t eris_epoll_dispatch( eris_event_t *__event, eris_event_cb_t __event_c
                             }
 
                             if ( ERIS_EVENT_NONE != cur_elem.events) {
+                                eris_event_elem_t del_elem; {
+                                    del_elem.sock   = cur_elem.sock;
+                                    del_elem.events = ERIS_EVENT_READ | ERIS_EVENT_WRITE;
+                                }
+
+                                eris_event_delete( __event, &del_elem);
+
                                 /** Call back */
                                 if ( __event_cb) { __event_cb( &cur_elem, __arg); }
                             }

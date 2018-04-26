@@ -402,9 +402,16 @@ eris_int_t eris_socket_ready_w( eris_sock_t __sock, eris_int_t __timeout)
 eris_int_t eris_socket_close( eris_sock_t __sock)
 {
     eris_int_t rc = 0;
-    if ( __sock) {
-        rc = (eris_int_t )close( __sock);
+    if ( 0 <= __sock) {
+        eris_int_t times = 3;
 
+        do {
+            times--;
+
+            rc = (eris_int_t )close( __sock);
+
+            if ( 0 >= times) { break; }
+        } while ( 0 != rc);
     } else { rc = EERIS_ERROR; }
 
     return rc;
