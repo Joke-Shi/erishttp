@@ -92,7 +92,7 @@ eris_int_t eris_event_queue_capacity( eris_event_queue_t *__event_queue)
 
     if ( __event_queue) {
         pthread_cleanup_push( (eris_cleanup_routine_t)pthread_mutex_unlock, (eris_void_t *)&(__event_queue->mutex));
-        /** Heppen cancel? */
+        /** Happen something cancel? */
 
         rc = pthread_mutex_lock( &(__event_queue->mutex));
         if ( 0 == rc) {
@@ -124,7 +124,7 @@ eris_int_t eris_event_queue_count( eris_event_queue_t *__event_queue)
 
     if ( __event_queue) {
         pthread_cleanup_push( (eris_cleanup_routine_t)pthread_mutex_unlock, (eris_void_t *)&(__event_queue->mutex));
-        /** Heppen cancel? */
+        /** Happen something cancel? */
 
         rc = pthread_mutex_lock( &(__event_queue->mutex));
         if ( 0 == rc) {
@@ -156,7 +156,7 @@ eris_bool_t eris_event_queue_isfull( eris_event_queue_t *__event_queue)
 
     if ( __event_queue) {
         pthread_cleanup_push( (eris_cleanup_routine_t)pthread_mutex_unlock, (eris_void_t *)&(__event_queue->mutex));
-        /** Heppen cancel? */
+        /** Happen something cancel? */
 
         /** Lock ok? */
         if ( 0 == pthread_mutex_lock( &(__event_queue->mutex))) {
@@ -188,7 +188,7 @@ eris_bool_t eris_event_queue_isempty( eris_event_queue_t *__event_queue)
 
     if ( __event_queue) {
         pthread_cleanup_push( (eris_cleanup_routine_t)pthread_mutex_unlock, (eris_void_t *)&(__event_queue->mutex));
-        /** Heppen cancel? */
+        /** Happen something cancel? */
 
         /** Lock ok? */
         if ( 0 == pthread_mutex_lock( &(__event_queue->mutex))) {
@@ -224,7 +224,7 @@ eris_int_t eris_event_queue_put( eris_event_queue_t *__event_queue, const eris_e
     if ( __event_queue) {
         if ( __in_elem) {
             pthread_cleanup_push( (eris_cleanup_routine_t)pthread_mutex_unlock, (eris_void_t *)&(__event_queue->mutex));
-            /** Heppen cancel? */
+            /** Happen something cancel? */
 
             /** Safe-thread lock */
             rc = pthread_mutex_lock( &(__event_queue->mutex));
@@ -284,7 +284,7 @@ eris_int_t eris_event_queue_get( eris_event_queue_t *__event_queue, eris_event_e
     if ( __event_queue) {
         if ( __out_elem) {
             pthread_cleanup_push( (eris_cleanup_routine_t)pthread_mutex_unlock, (eris_void_t *)&(__event_queue->mutex));
-            /** Heppen cancel? */
+            /** Happen something cancel? */
 
             /** Safe-thread lock */
             rc = pthread_mutex_lock( &(__event_queue->mutex));
