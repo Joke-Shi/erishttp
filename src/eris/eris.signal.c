@@ -53,7 +53,7 @@ eris_int_t eris_signal_init( eris_log_t *__log)
         eris_memory_cleanup( &sa, sizeof( eris_sigaction_t));
 
         sa.sa_handler = p_sigs->sighandler;
-        sigemptyset( &(sa.sa_mash));
+        sigemptyset( &(sa.sa_mask));
 
         if ( -1 == sigaction( p_sigs->signo, &sa, NULL)) {
             rc = EERIS_ERROR;
