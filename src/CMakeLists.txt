@@ -9,6 +9,7 @@ include_directories( ${PROJECT_SOURCE_DIR}/../include)
 
 # Create config.h 
 include( CheckFunctionExists)
+check_function_exists( "sigaction"   ERIS_HAVE_SIGACTION)
 check_function_exists( "gmtime_r"    ERIS_HAVE_GMTIME_R)
 check_function_exists( "truncate"    ERIS_HAVE_TRUNCATE)
 check_function_exists( "pread"       ERIS_HAVE_PREAD)
