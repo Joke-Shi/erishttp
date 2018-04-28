@@ -139,39 +139,30 @@ eris_int_t eris_select_dispatch( eris_event_t *__event, eris_event_cb_t __event_
                 eris_event_node_t *cur_node = __event->accept_nodes;
                 while ( cur_node) {
                     if ( FD_ISSET( cur_node->elem.sock, p_r_set)) {
-                        eris_sock_t client_sock = eris_event_accept( __event, cur_node->elem.sock);
-                        if ( -1 != client_sock) {
-                            eris_event_elem_t ev_client_elem; {
-                                ev_client_elem.sock   = client_sock;
-                                ev_client_elem.events = ERIS_EVENT_READ;
-                            }
-
-                            if ( __event->log) {
-                                eris_socket_host_t client_host;
-
-                                if ( 0 == eris_socket_host( client_sock, &client_host)) {
-                                    eris_log_dump( __event->log, ERIS_LOG_INFO, 
-                                                   "Connect from client.(%s:%d) fd.%d", 
-                                                   client_host.ipv4, 
-                                                   client_host.port,
-                                                   client_sock);
+                        /** Busy??? */
+                        if ( (__event->nodes_count + 1) < __event->max_events) {
+                            eris_sock_t client_sock = eris_event_accept( __event, cur_node->elem.sock);
+                            if ( -1 != client_sock) {
+                                eris_event_elem_t ev_client_elem; {
+                                    ev_client_elem.sock   = client_sock;
+                                    ev_client_elem.events = ERIS_EVENT_READ;
                                 }
-                            }
 
-                            /** Busy??? */
-                            if ( (__event->nodes_count + 1) < __event->max_events) {
+                                if ( __event->log) {
+                                    eris_socket_host_t client_host;
+
+                                    if ( 0 == eris_socket_host( client_sock, &client_host)) {
+                                        eris_log_dump( __event->log, ERIS_LOG_INFO, 
+                                                       "Pid.%d - connect from client.(%s:%d) fd.%d",
+                                                       eris_get_pid(),
+                                                       client_host.ipv4, 
+                                                       client_host.port,
+                                                       client_sock);
+                                    }
+                                }
+
                                 rc = eris_event_add( __event, &ev_client_elem);
                                 if ( 0 != rc) {
-                                    eris_socket_close( client_sock);
-                                }
-                            } else {
-                                ev_client_elem.events = ERIS_EVENT_BUSY;
-
-                                /** Call back */
-                                if ( __event_cb) { 
-                                    __event_cb( &ev_client_elem, __arg);
-
-                                } else { 
                                     eris_socket_close( client_sock);
                                 }
                             }

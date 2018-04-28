@@ -100,31 +100,39 @@ eris_int_t eris_epoll_add( eris_event_t *__event, eris_event_elem_t *__elem)
                     tmp_ev.events  = 0;
                 }
 
-                if ( (ERIS_EVENT_ACCEPT & __elem->events) ||
-                     (ERIS_EVENT_READ   & __elem->events)) {
+                if ( ERIS_EVENT_ACCEPT & __elem->events) {
                     /** Set readable */
-                    //tmp_ev.events |= EPOLLIN | EPOLLET;
-                    tmp_ev.events |= EPOLLIN ;
+                    tmp_ev.events = EPOLLIN;
+                    //tmp_ev.events |= EPOLLIN ;
+
+                } else {
+                    if ( ERIS_EVENT_READ & __elem->events) {
+                        /** Set readable */
+                        tmp_ev.events |= EPOLLIN | EPOLLET;
+                        //tmp_ev.events |= EPOLLIN ;
+                    }
+
+                    if ( ERIS_EVENT_WRITE & __elem->events) {
+                        /** Set write */
+                        tmp_ev.events |= EPOLLOUT | EPOLLET;
+                        //tmp_ev.events |= EPOLLOUT ;
+                    }
                 }
 
-                if ( ERIS_EVENT_WRITE & __elem->events) {
-                    /** Set write */
-                    //tmp_ev.events |= EPOLLOUT | EPOLLET;
-                    tmp_ev.events |= EPOLLOUT ;
-                }
+                if ( 0 != tmp_ev.events) {
+                    rc = epoll_ctl( __event->context.epoll.fd, EPOLL_CTL_ADD, __elem->sock, &tmp_ev);
+                    if ( 0 != rc) {
+                        if ( EEXIST == errno) {
+                            /** Ok-> it is existed */
+                            rc = 0;
 
-                rc = epoll_ctl( __event->context.epoll.fd, EPOLL_CTL_ADD, __elem->sock, &tmp_ev);
-                if ( 0 != rc) {
-                    if ( EEXIST == errno) {
-                        /** Ok-> it is existed */
-                        rc = 0;
+                        } else {
+                            /** Error and set error log dump out */
+                            rc = EERIS_ERROR;
 
-                    } else {
-                        /** Error and set error log dump out */
-                        rc = EERIS_ERROR;
-
-                        if ( __event->log) {
-                            eris_log_dump( __event->log, ERIS_LOG_CORE, "Add socket fd event failed, errno.<%d>", errno);
+                            if ( __event->log) {
+                                eris_log_dump( __event->log, ERIS_LOG_CORE, "Add socket fd event failed, errno.<%d>", errno);
+                            }
                         }
                     }
                 }
@@ -168,31 +176,40 @@ eris_int_t eris_epoll_modify( eris_event_t *__event, eris_event_elem_t *__elem)
                     tmp_ev.events  = 0;
                 }
 
-                if ( (ERIS_EVENT_ACCEPT & __elem->events) ||
-                     (ERIS_EVENT_READ   & __elem->events)) {
+
+                if ( ERIS_EVENT_ACCEPT & __elem->events) {
                     /** Set readable */
-                    //tmp_ev.events |= EPOLLIN | EPOLLET;
-                    tmp_ev.events |= EPOLLIN;
+                    tmp_ev.events = EPOLLIN;
+                    //tmp_ev.events |= EPOLLIN ;
+
+                } else {
+                    if ( ERIS_EVENT_READ & __elem->events) {
+                        /** Set readable */
+                        tmp_ev.events |= EPOLLIN | EPOLLET;
+                        //tmp_ev.events |= EPOLLIN ;
+                    }
+
+                    if ( ERIS_EVENT_WRITE & __elem->events) {
+                        /** Set write */
+                        tmp_ev.events |= EPOLLOUT | EPOLLET;
+                        //tmp_ev.events |= EPOLLOUT ;
+                    }
                 }
 
-                if ( ERIS_EVENT_WRITE & __elem->events) {
-                    /** Set write */
-                    //tmp_ev.events |= EPOLLOUT | EPOLLET;
-                    tmp_ev.events |= EPOLLOUT ;
-                }
+                if ( 0 != tmp_ev.events) {
+                    rc = epoll_ctl( __event->context.epoll.fd, EPOLL_CTL_MOD, __elem->sock, &tmp_ev);
+                    if ( 0 != rc) {
+                        if ( ENOENT == errno) {
+                            /** Ok-> it is existed */
+                            rc = eris_epoll_add( __event, __elem);
 
-                rc = epoll_ctl( __event->context.epoll.fd, EPOLL_CTL_MOD, __elem->sock, &tmp_ev);
-                if ( 0 != rc) {
-                    if ( ENOENT == errno) {
-                        /** Ok-> it is existed */
-                        rc = eris_epoll_add( __event, __elem);
+                        } else {
+                            /** Error and set error log dump out */
+                            rc = EERIS_ERROR;
 
-                    } else {
-                        /** Error and set error log dump out */
-                        rc = EERIS_ERROR;
-
-                        if ( __event->log) {
-                            eris_log_dump( __event->log, ERIS_LOG_CORE, "Modify socket fd event failed, errno.<%d>", errno);
+                            if ( __event->log) {
+                                eris_log_dump( __event->log, ERIS_LOG_CORE, "Modify socket fd event failed, errno.<%d>", errno);
+                            }
                         }
                     }
                 }
@@ -328,40 +345,31 @@ eris_int_t eris_epoll_dispatch( eris_event_t *__event, eris_event_cb_t __event_c
                         }
 
                         if ( is_accept_sock) {
-                            eris_sock_t client_sock = eris_event_accept( __event, cur_elem.sock);
-                            if ( -1 != client_sock) {
-                                eris_event_elem_t ev_client_elem; {
-                                    ev_client_elem.sock   = client_sock;
-                                    ev_client_elem.events = ERIS_EVENT_READ;
-                                }
-
-                                if ( __event->log) {
-                                    eris_socket_host_t client_host;
-
-                                    if ( 0 == eris_socket_host( client_sock, &client_host)) {
-                                        eris_log_dump( __event->log, ERIS_LOG_INFO, 
-                                                       "Connect from client.(%s:%d) fd.%d", 
-                                                       client_host.ipv4, 
-                                                       client_host.port,
-                                                       client_sock);
+                            /** Busy??? */
+                            if ( (__event->nodes_count + 1) < __event->max_events ) {
+                                eris_sock_t client_sock = eris_event_accept( __event, cur_elem.sock);
+                                if ( 0 < client_sock) {
+                                    eris_event_elem_t ev_client_elem; {
+                                        ev_client_elem.sock   = client_sock;
+                                        ev_client_elem.events = ERIS_EVENT_READ;
                                     }
-                                }
 
-                                /** Busy??? */
-                                if ( (__event->nodes_count + 1) < __event->max_events) {
+                                    if ( __event->log) {
+                                        eris_socket_host_t client_host;
+
+                                        if ( 0 == eris_socket_host( client_sock, &client_host)) {
+                                            eris_log_dump( __event->log, ERIS_LOG_INFO, 
+                                                           "Pid.%d - connect from client.(%s:%d) fd.%d",
+                                                           eris_get_pid(),
+                                                           client_host.ipv4, 
+                                                           client_host.port,
+                                                           client_sock);
+                                        }
+                                    }
+
                                     rc = eris_event_add( __event, &ev_client_elem);
                                     if ( 0 != rc) {
                                         eris_socket_close( client_sock);
-                                    }
-                                } else {
-                                    ev_client_elem.events = ERIS_EVENT_BUSY;
-
-                                    /** Call back */
-                                    if ( __event_cb) {
-                                        __event_cb( &ev_client_elem, __arg); 
-
-                                    } else { 
-                                        eris_socket_close( client_sock); 
                                     }
                                 }
                             }
@@ -389,7 +397,7 @@ eris_int_t eris_epoll_dispatch( eris_event_t *__event, eris_event_cb_t __event_c
                             /** Close of peer */
                             if ( ( EPOLLHUP   & __event->context.epoll.fds[ i].events) || 
                                  ( EPOLLRDHUP & __event->context.epoll.fds[ i].events) ) {
-                                cur_elem.events |= ERIS_EVENT_CLOSE;
+                                cur_elem.events = ERIS_EVENT_CLOSE;
                             }
 
                             if ( ERIS_EVENT_NONE != cur_elem.events) {

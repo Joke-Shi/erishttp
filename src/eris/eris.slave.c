@@ -139,9 +139,11 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                     /** Get data and parse */
                     rc = eris_http_request_parse( http_context, eris_slave_request_incb, &ev_elt);
                     if ( 0 == rc) {
+#if 0
                         if ( eris_http_request_keep_alive( http_context) ) {
                             is_keepalive = true;
                         }
+#endif
 
                         if ( eris_http_request_shake( http_context) ) {
                             /** Get Content-Length */
@@ -461,13 +463,13 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                 {
                     //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - http pack sock.<%d>", eris_get_pid(), ev_elt.sock);
 
-                    if ( 1 == eris_socket_ready_w( ev_elt.sock, 1)) {
+                    if ( 1 == eris_socket_ready_w( ev_elt.sock, 0)) {
                         /** output response to client */
                         rc = eris_http_response_pack( http_context, eris_slave_response_outcb, &ev_elt);
                         if ( 0 == rc) {
                             eris_slave_log_dump( ev_elt.sock, &client_host, http_context, "ok");
 
-                            if ( is_keepalive) {
+                            if ( 1 == eris_socket_ready_w( ev_elt.sock, 0)) {
                                 eris_slave_state_v = ERIS_SLAVE_CONN_KEEPALIVE;
 
                             } else { eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; }
@@ -485,13 +487,14 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                     eris_memory_cleanup( &client_host, sizeof( eris_socket_host_t));
                 } break;
             case ERIS_SLAVE_CONN_KEEPALIVE :
+#if 0
                 {
-                    //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - keepalive sock.<%d>", eris_get_pid(), ev_elt.sock);
+                    eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - keepalive sock.<%d>", eris_get_pid(), ev_elt.sock);
 
                     /** Resave into event context monitor */
                     ev_elt.events = ERIS_EVENT_READ;
 
-                    rc = eris_event_modify( &(p_erishttp_context->svc_event), &ev_elt);
+                    rc = eris_event_add( &(p_erishttp_context->svc_event), &ev_elt);
                     if ( 0 == rc) {
                         eris_slave_state_v = ERIS_SLAVE_GET_WAIT;
 
@@ -499,6 +502,7 @@ eris_void_t *eris_slave_handler( eris_void_t *__arg)
                         eris_slave_state_v = ERIS_SLAVE_CONN_CLOSE; 
                     }
                 } break;
+#endif
             case ERIS_SLAVE_CONN_CLOSE :
                 {
                     //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - close sock.<%d>", eris_get_pid(), ev_elt.sock);
@@ -544,7 +548,6 @@ eris_slave_request_incb( eris_buffer_t *__out_buf, eris_size_t __max_size, eris_
             eris_uchar_t recv_buffer[4096] = {0};
 
             eris_ssize_t recv_n = recv( p_ev_elt->sock, recv_buffer, sizeof( recv_buffer), 0);
-            //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - sock.<%d> - receive\n%s", eris_get_pid(), p_ev_elt->sock, recv_buffer);
             if ( 0 < recv_n) {
                 /** Save data */
                 rc = eris_buffer_append( __out_buf, recv_buffer, recv_n, __log);
@@ -595,12 +598,11 @@ eris_slave_response_outcb( eris_buffer_t *__in_buf, eris_size_t __in_size, eris_
 
     if ( 0 < __in_size) {
         rc = eris_socket_ready_w( p_ev_elt->sock, p_erishttp_context->attrs.timeout);
-        if ( 1 == rc) {
+        if ( 0 < rc) {
             rc = 0;
 
             eris_size_t send_count = 0;
 
-            //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - Send sock.<%d>", eris_get_pid(), p_ev_elt->sock);
             while ( send_count < __in_size) {
                 eris_ssize_t send_n = send( p_ev_elt->sock, __in_buf->data + send_count, __in_size - send_count, MSG_DONTWAIT);
                 if ( 0 < send_n) {
@@ -622,7 +624,9 @@ eris_slave_response_outcb( eris_buffer_t *__in_buf, eris_size_t __in_size, eris_
                     } else { rc = -1; break; }
                 }
             }
-            //eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - Send over sock.<%d>", eris_get_pid(), p_ev_elt->sock);
+#if 0
+            eris_log_dump( &(p_erishttp_context->errors_log), ERIS_LOG_NOTICE, "Pid.<%d> - Send over sock.<%d>", eris_get_pid(), p_ev_elt->sock);
+#endif
         } else { rc = -1; /** Timeout is bad request */}
     }
 

@@ -245,11 +245,11 @@ eris_int_t eris_event_queue_put( eris_event_queue_t *__event_queue, const eris_e
                 /** Notify other monitor condition object */
                 {
                     pthread_mutex_unlock( &(__event_queue->mutex));
-                    pthread_cond_broadcast( &(__event_queue->cond));
                 }
             } else { rc = EERIS_ERROR; }
 
             pthread_cleanup_pop(0);
+            pthread_cond_broadcast( &(__event_queue->cond));
         }
     } else { rc = EERIS_INVALID; }
 
@@ -304,11 +304,11 @@ eris_int_t eris_event_queue_get( eris_event_queue_t *__event_queue, eris_event_e
                 /** Notify other monitor condition object */
                 {
                     pthread_mutex_unlock( &(__event_queue->mutex));
-                    pthread_cond_broadcast( &(__event_queue->cond));
                 }
             } else { rc = EERIS_ERROR; }
 
             pthread_cleanup_pop(0);
+            pthread_cond_broadcast( &(__event_queue->cond));
         }
     } else { rc = EERIS_INVALID; }
 
