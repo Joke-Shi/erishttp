@@ -130,7 +130,7 @@ eris_int_t eris_files_open( eris_files_t *__fcontext, eris_flag_t __flags, eris_
             }
 
 #ifdef __CYGWIN__
-            __fcontext->fd = open( __fcontext->name, __flags | 0_BINARY, __access);
+            __fcontext->fd = open( __fcontext->name, __flags | O_BINARY, __access);
 #else
             __fcontext->fd = open( __fcontext->name, __flags, __access);
 #endif
