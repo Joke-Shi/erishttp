@@ -15,7 +15,7 @@ extern "C" {
 
 
 /** Check sigaction */
-/* #undef ERIS_HAVE_SIGACTION */
+#define ERIS_HAVE_SIGACTION     1
 
 /** Check getime_r */
 #define ERIS_HAVE_GMTIME_R      1

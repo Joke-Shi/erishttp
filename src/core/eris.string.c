@@ -274,7 +274,9 @@ eris_int_t eris_string_atoi( const eris_string_t __es)
 
             /** Check sign */
             if ( '-' == dup_es[ i]) {
-                sign = EERIS_ERROR; i++;
+                sign = -1; 
+
+				i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -331,7 +333,9 @@ eris_uint_t eris_string_atou( const eris_string_t __es)
 
             /** Check sign */
             if ( '-' == dup_es[ i]) {
-                sign = EERIS_ERROR; i++;
+                sign = -1; 
+				
+				i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -388,7 +392,9 @@ eris_long_t eris_string_atol( const eris_string_t __es)
 
             /** Check sign */
             if ( '-' == dup_es[ i]) {
-                sign = EERIS_ERROR; i++;
+                sign = -1; 
+				
+				i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -449,7 +455,9 @@ eris_ulong_t eris_string_atoul( const eris_string_t __es)
 
             /** Check sign */
             if ( '-' == dup_es[ i]) {
-                sign = EERIS_ERROR; i++;
+                sign = -1; 
+				
+				i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -510,7 +518,9 @@ eris_llong_t eris_string_atoll( const eris_string_t __es)
 
             /** Check sign */
             if ( '-' == dup_es[ i]) {
-                sign = EERIS_ERROR; i++;
+                sign = -1; 
+				
+				i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -563,7 +573,9 @@ eris_ullong_t eris_string_atoull( const eris_string_t __es)
 
         /** Check sign */
         if ( '-' == dup_es[ i]) {
-            sign = EERIS_ERROR; i++;
+            sign = -1; 
+			
+			i++;
         } else {
             if ( '+' == dup_es[ i]) {
                 i++;
