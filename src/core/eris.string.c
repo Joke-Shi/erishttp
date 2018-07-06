@@ -276,7 +276,7 @@ eris_int_t eris_string_atoi( const eris_string_t __es)
             if ( '-' == dup_es[ i]) {
                 sign = -1; 
 
-				i++;
+                i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -334,8 +334,8 @@ eris_uint_t eris_string_atou( const eris_string_t __es)
             /** Check sign */
             if ( '-' == dup_es[ i]) {
                 sign = -1; 
-				
-				i++;
+                
+                i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -393,8 +393,8 @@ eris_long_t eris_string_atol( const eris_string_t __es)
             /** Check sign */
             if ( '-' == dup_es[ i]) {
                 sign = -1; 
-				
-				i++;
+                
+                i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -456,8 +456,8 @@ eris_ulong_t eris_string_atoul( const eris_string_t __es)
             /** Check sign */
             if ( '-' == dup_es[ i]) {
                 sign = -1; 
-				
-				i++;
+                
+                i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -519,8 +519,8 @@ eris_llong_t eris_string_atoll( const eris_string_t __es)
             /** Check sign */
             if ( '-' == dup_es[ i]) {
                 sign = -1; 
-				
-				i++;
+                
+                i++;
             } else {
                 if ( '+' == dup_es[ i]) {
                     i++;
@@ -574,8 +574,8 @@ eris_ullong_t eris_string_atoull( const eris_string_t __es)
         /** Check sign */
         if ( '-' == dup_es[ i]) {
             sign = -1; 
-			
-			i++;
+            
+            i++;
         } else {
             if ( '+' == dup_es[ i]) {
                 i++;
@@ -3645,7 +3645,17 @@ eris_int_t eris_string_vprintf( eris_string_t *__esp, const eris_char_t *__fmt, 
                             default :
                                 {
                                     /** Save append */
-                                    rc = eris_string_append_c( __esp, next_c);
+                                    eris_int_t v = va_arg( __vap, eris_int_t );
+
+                                    eris_string_t tmp_es = NULL;
+                                    rc = eris_string_itoa( &tmp_es, v);
+                                    if ( 0 == rc) {
+                                        /** Save append */
+                                        rc = eris_string_append_eris( __esp, tmp_es);
+
+                                        (eris_void_t )eris_string_free( tmp_es); tmp_es = NULL;
+                                    }
+                                    //rc = eris_string_append_c( __esp, next_c);
                                 } break;
 
                         }/// switch ( next_c)
