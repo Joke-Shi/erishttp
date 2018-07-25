@@ -212,9 +212,6 @@ eris_int_t eris_buffer_append( eris_buffer_t *__buffer, const eris_void_t *__ptr
                     __buffer->alloc = realloc_size;
 
                 } else {
-                    __buffer->alloc = 0;
-                    __buffer->size  = 0;
-
                     rc = EERIS_ERROR;
 
                     if ( __log) {
@@ -273,9 +270,6 @@ eris_int_t eris_buffer_append_c( eris_buffer_t *__buffer, const eris_uchar_t __c
                 __buffer->alloc = realloc_size;
 
             } else {
-                __buffer->alloc = 0;
-                __buffer->size  = 0;
-
                 rc = EERIS_ERROR;
 
                 if ( __log) {
@@ -334,9 +328,6 @@ eris_int_t eris_buffer_append_es( eris_buffer_t *__src, const eris_buffer_t *__d
                     __src->alloc = realloc_size;
 
                 } else {
-                    __src->alloc = 0;
-                    __src->alloc = 0;
-
                     rc = EERIS_ERROR;
 
                     if ( __log) {
