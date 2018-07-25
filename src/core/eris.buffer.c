@@ -201,10 +201,14 @@ eris_int_t eris_buffer_append( eris_buffer_t *__buffer, const eris_void_t *__ptr
         if ( __ptr && (0 < __size)) {
             /** Have data and append to buffer */
             if ( __size  >= (__buffer->alloc - __buffer->size)) {
-                eris_size_t realloc_size = __buffer->alloc + __size;
+                eris_size_t realloc_size = __buffer->alloc + __size + 4;
 
-                __buffer->data = (eris_uchar_t *)eris_memory_realloc( __buffer->data, realloc_size);
-                if ( __buffer->data) {
+                eris_uchar_t *data_ptr = eris_memory_alloc( realloc_size);
+                if ( data_ptr) {
+                    eris_memory_copy( data_ptr, __buffer->data, __buffer->size);
+                    eris_memory_free( __buffer->data);
+
+                    __buffer->data = data_ptr;
                     __buffer->alloc = realloc_size;
 
                 } else {
@@ -258,10 +262,14 @@ eris_int_t eris_buffer_append_c( eris_buffer_t *__buffer, const eris_uchar_t __c
     if ( __buffer) {
         /** Append to buffer tail */
         if ( 1 >= (__buffer->alloc - __buffer->size)) {
-            eris_size_t realloc_size = __buffer->alloc + 8;
+            eris_size_t realloc_size = __buffer->alloc + 4;
 
-            __buffer->data = (eris_uchar_t *)eris_memory_realloc( __buffer->data, realloc_size);
-            if ( __buffer->data) {
+            eris_uchar_t *data_ptr = eris_memory_alloc( realloc_size);
+            if ( data_ptr) {
+                eris_memory_copy( data_ptr, __buffer->data, __buffer->size);
+                eris_memory_free( __buffer->data);
+
+                __buffer->data  = data_ptr;
                 __buffer->alloc = realloc_size;
 
             } else {
@@ -306,7 +314,7 @@ eris_int_t eris_buffer_append_c( eris_buffer_t *__buffer, const eris_uchar_t __c
  *
  * @Return: Ok is 0, Other is EERIS_ERROR.
  **/
-eris_int_t eris_buffer_append_eris( eris_buffer_t *__src, const eris_buffer_t *__dst, eris_log_t *__log)
+eris_int_t eris_buffer_append_es( eris_buffer_t *__src, const eris_buffer_t *__dst, eris_log_t *__log)
 {
     eris_int_t tmp_errno = errno;
     eris_int_t rc = 0;
@@ -314,11 +322,15 @@ eris_int_t eris_buffer_append_eris( eris_buffer_t *__src, const eris_buffer_t *_
     if ( __src) {
         if ( __dst && (0 < __dst->size)) {
             /** Have data and append to buffer */
-            if ( __dst->size > (__src->alloc - __src->size)) {
-                eris_size_t realloc_size = __src->alloc + __dst->size;
+            if ( __dst->size >= (__src->alloc - __src->size)) {
+                eris_size_t realloc_size = __src->alloc + __dst->size + 4;
 
-                __src->data = (eris_uchar_t *)eris_memory_realloc( __src->data, realloc_size);
-                if ( __src->data) {
+                eris_uchar_t *data_ptr = eris_memory_alloc( realloc_size);
+                if ( data_ptr) {
+                    eris_memory_copy( data_ptr, __src->data, __src->size);
+                    eris_memory_free( __src->data);
+
+                    __src->data  = data_ptr;
                     __src->alloc = realloc_size;
 
                 } else {
@@ -352,7 +364,7 @@ eris_int_t eris_buffer_append_eris( eris_buffer_t *__src, const eris_buffer_t *_
     errno = tmp_errno;
 
     return rc;
-}/// eris_buffer_append_eris
+}/// eris_buffer_append_es
 
 
 /**
