@@ -1332,7 +1332,7 @@ eris_int_t eris_http_request_parse( eris_http_t *__http, eris_http_cb_t __incb, 
                                                 rc = __incb( &(__http->bbuffer), get_data_size, __arg, __http->log);
                                                 if ( 0 == rc) {
                                                     /** Append request body data */
-                                                    rc = eris_buffer_append_eris( &(__http->request.body), &(__http->bbuffer), __http->log);
+                                                    rc = eris_buffer_append_es( &(__http->request.body), &(__http->bbuffer), __http->log);
                                                     if ( 0 != rc) {
                                                         rc = EERIS_ERROR;
 
@@ -2359,7 +2359,7 @@ eris_int_t eris_http_response_parse( eris_http_t *__http, eris_http_cb_t __incb,
                                     rc = __incb( &(__http->bbuffer), get_data_size, __arg, __http->log);
                                     if ( 0 == rc) {
                                         /** Append response body data */
-                                        rc = eris_buffer_append_eris( &(__http->response.body), &(__http->bbuffer), __http->log);
+                                        rc = eris_buffer_append_es( &(__http->response.body), &(__http->bbuffer), __http->log);
                                         if ( 0 != rc) {
                                             /** Happen error and get out */
                                             rc = EERIS_ERROR;

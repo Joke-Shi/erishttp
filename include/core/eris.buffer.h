@@ -129,7 +129,7 @@ extern eris_int_t eris_buffer_append_c( eris_buffer_t *__buffer, const eris_ucha
  *
  * @Return: Ok is 0, Other is EERIS_ERROR.
  **/
-extern eris_int_t eris_buffer_append_eris( eris_buffer_t *__src, const eris_buffer_t *__dst, eris_log_t *__log);
+extern eris_int_t eris_buffer_append_es( eris_buffer_t *__src, const eris_buffer_t *__dst, eris_log_t *__log);
 
 
 /**
