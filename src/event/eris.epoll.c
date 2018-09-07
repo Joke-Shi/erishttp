@@ -97,7 +97,7 @@ eris_int_t eris_epoll_add( eris_event_t *__event, eris_event_elem_t *__elem)
             if ( __elem && (0 <= __elem->sock)) {
                 eris_epollfd_t tmp_ev; {
                     tmp_ev.data.fd = __elem->sock;
-                    tmp_ev.events  = 0;
+                    tmp_ev.events  = EPOLLHUP | EPOLLRDHUP;
                 }
 
                 if ( ERIS_EVENT_ACCEPT & __elem->events) {
@@ -173,7 +173,7 @@ eris_int_t eris_epoll_modify( eris_event_t *__event, eris_event_elem_t *__elem)
             if ( __elem && (0 <= __elem->sock)) {
                 eris_epollfd_t tmp_ev; {
                     tmp_ev.data.fd = __elem->sock;
-                    tmp_ev.events  = 0;
+                    tmp_ev.events  = EPOLLHUP | EPOLLRDHUP;
                 }
 
 
