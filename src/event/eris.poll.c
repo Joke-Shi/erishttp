@@ -376,7 +376,7 @@ static eris_none_t eris_poll_regfds( eris_event_t *__event)
                 /** Is alive??? */
                 if ( 1 == eris_socket_ready_w( cur_node->elem.sock, 0)) {
                     __event->context.poll.fds[ reg_count].fd = cur_node->elem.sock;
-                    __event->context.poll.fds[ reg_count].events  = 0;
+                    __event->context.poll.fds[ reg_count].events  = POLLHUP;
                     __event->context.poll.fds[ reg_count].revents = 0;
 
                     /** Register read event */
