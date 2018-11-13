@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# @CopyRight (C) 石正贤(Shizhengxian)
 
 #-- Output usage message --#
 function usage()
