@@ -56,7 +56,7 @@ function create_cxx_service_tpl()
     echo '    eris_http_response_set_header( __http, "Content-Type", "text/plain");'  >> $service_file;
     echo ""  >> $service_file;
     echo "    /** Set body data */"  >> $service_file;
-	echo '    rc = eris_http_response_set_body( __http, (const eris_void_t *)"Erishttp Service", 16);' >> $service_file;
+    echo '    rc = eris_http_response_set_body( __http, (const eris_void_t *)"Erishttp Service", 16);' >> $service_file;
     echo ""  >> $service_file;
     echo ""  >> $service_file;
     echo "    return rc;" >> $service_file;
@@ -99,8 +99,8 @@ function create_cxx_service_mkf()
     echo '	$(CXX) $(CXXFLAGS) -shared $^ -o $@ -L../../lib $(lib_opts) $(libs)' >> $service_makefile;
     echo "" >> $service_makefile;
     echo "" >> $service_makefile;
-	echo '$(objects):%.o:%.cxx' >> $service_makefile;
-	echo '	$(CXX) $(CXXFLAGS) -fPIC $(inc_opts) -c $^ -o $@' >> $service_makefile;
+    echo '$(objects):%.o:%.cxx' >> $service_makefile;
+    echo '	$(CXX) $(CXXFLAGS) -fPIC $(inc_opts) -c $^ -o $@' >> $service_makefile;
     echo "" >> $service_makefile;
     echo "" >> $service_makefile;
     echo "clean:" >> $service_makefile;
@@ -110,7 +110,6 @@ function create_cxx_service_mkf()
     echo "[Create ]: service.<$2> makefile ok!";
     echo "--------------------------------------------------------------------------";
 }
-
 
 
 #-- Create c++ service template --#
@@ -150,7 +149,7 @@ function create_c_service_tpl()
     echo '    eris_http_response_set_header( __http, "Content-Type", "text/plain");'  >> $service_file;
     echo ""  >> $service_file;
     echo "    /** Set body data */"  >> $service_file;
-	echo '    rc = eris_http_response_set_body( __http, (const eris_void_t *)"Erishttp Service", 16);' >> $service_file;
+    echo '    rc = eris_http_response_set_body( __http, (const eris_void_t *)"Erishttp Service", 16);' >> $service_file;
     echo ""  >> $service_file;
     echo ""  >> $service_file;
     echo "    return rc;" >> $service_file;
@@ -193,8 +192,8 @@ function create_c_service_mkf()
     echo '	$(CXX) $(CXXFLAGS) -shared $^ -o $@ -L../../lib $(lib_opts) $(libs)' >> $service_makefile;
     echo "" >> $service_makefile;
     echo "" >> $service_makefile;
-	echo '$(objects):%.o:%.c' >> $service_makefile;
-	echo '	$(CXX) $(CXXFLAGS) -fPIC $(inc_opts) -c $^ -o $@' >> $service_makefile;
+    echo '$(objects):%.o:%.c' >> $service_makefile;
+    echo '	$(CXX) $(CXXFLAGS) -fPIC $(inc_opts) -c $^ -o $@' >> $service_makefile;
     echo "" >> $service_makefile;
     echo "" >> $service_makefile;
     echo "clean:" >> $service_makefile;
@@ -204,9 +203,6 @@ function create_c_service_mkf()
     echo "[Create ]: service.<$2> makefile ok!";
     echo "--------------------------------------------------------------------------";
 }
-
-
-
 
 
 if [ $# -ne 0 ]; then
@@ -236,29 +232,29 @@ if [ $# -ne 0 ]; then
     done
 
     #-- Output message --#
-	if [ -f "$parent_path/$service_name/$service_name.c" ]; then
-		echo "[Notice]: Service <$service_name> c langugage type is existed.";
+    if [ -f "$parent_path/$service_name/$service_name.c" ]; then
+        echo "[Notice]: Service <$service_name> c langugage type is existed.";
 
-	elif [ -f "$parent_path/$service_name/$service_name.cxx" ]; then
-		echo "[Notice]: Service <$service_name> c++ langugage type is existed.";
+    elif [ -f "$parent_path/$service_name/$service_name.cxx" ]; then
+        echo "[Notice]: Service <$service_name> c++ langugage type is existed.";
 
-	else 
-		if [ -n $service_name ]; then
-    	    if [ "$service_type" == "c++" ] || [ "$service_type" == "C++" ]; then
-    	        create_cxx_service_tpl $parent_path $service_name;
-    	        create_cxx_service_mkf $parent_path $service_name;
+    else 
+        if [ -n $service_name ]; then
+            if [ "$service_type" == "c++" ] || [ "$service_type" == "C++" ]; then
+                create_cxx_service_tpl $parent_path $service_name;
+                create_cxx_service_mkf $parent_path $service_name;
 
-    	    elif [ "$service_type" == "c" ] || [ "$service_type" == "C" ]; then
-    	        create_c_service_tpl $parent_path $service_name;
-    	        create_c_service_mkf $parent_path $service_name;
+            elif [ "$service_type" == "c" ] || [ "$service_type" == "C" ]; then
+                create_c_service_tpl $parent_path $service_name;
+                create_c_service_mkf $parent_path $service_name;
 
-    	    else 
-    	        echo "[Error]: Unknow service type.<$service_type>";
-    	    fi
-    	else
-    	    usage $0;
-    	fi
-	fi
+            else 
+                echo "[Error]: Unknow service type.<$service_type>";
+            fi
+        else
+            usage $0;
+        fi
+    fi
 else
     #-- Output message --#
     usage $0;

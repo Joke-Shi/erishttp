@@ -18,7 +18,10 @@
 extern "C" {
 #endif
 
+#ifdef  _GNU_SOURCE
+#else
 #define _GNU_SOURCE
+#endif
 
 #include <sys/types.h>
 #include <sys/time.h>
